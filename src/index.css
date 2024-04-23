@@ -1,5 +1,17 @@
 @import "bulma/css/bulma.min.css";
-
 :root {
-  --primary: #0000; /* Customize the primary color */
+  /* Default global value */
 }
+
+#appContainer {
+  margin: 30px;
+}
+
+.header {
+  padding: 10px;
+  /* border-radius: 5px; */
+}
+
+/* .pageContainer {
+  background-color: hsl(0, 0%, 71%);
+} */
