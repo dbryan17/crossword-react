@@ -1,35 +1,28 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
+import commonTrie from "../public/data/commonTrie.json";
+import HomePage from "./pages/home/page";
+import GenerateCwsPage from "./pages/generateCws/page";
+import { Routes, Route, Link } from "react-router-dom";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  console.log(commonTrie["2"]);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <nav>
+        <Link to="/">Home</Link> |
+        <Link to="/generate">Generate Crosswords</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/generate" element={<GenerateCwsPage />} />
+      </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
