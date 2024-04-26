@@ -2,7 +2,11 @@ import Header from "../../components/header/header";
 import { useState } from "react";
 import Grid from "./grid";
 export default function GenerateCwsPage() {
-  const [didClickGenerate, setDidClickGenerate] = useState(false);
+  const [generateVars, setGenerateVars] = useState({
+    shouldGenerate: false,
+    width: null,
+    height: null,
+  });
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
   const [widthIsInvalid, setWidthIsInvalid] = useState(false);
@@ -20,7 +24,11 @@ export default function GenerateCwsPage() {
       isError = true;
     }
     if (!isError) {
-      setDidClickGenerate(true);
+      setGenerateVars({
+        shouldGenerate: true,
+        width: width,
+        height: height,
+      });
     }
   };
 
@@ -84,7 +92,11 @@ export default function GenerateCwsPage() {
         >
           Generate
         </button>
-        {didClickGenerate ? <Grid /> : ""}
+        {generateVars.shouldGenerate ? (
+          <Grid width={generateVars.width} height={generateVars.height} />
+        ) : (
+          ""
+        )}
       </div>
       <br />
       <div>

@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 /*
 
 Todo - 
+0) https://bulma.io/documentation/form/file/
 1) re upload button where you can do no headers, or select if it has headers or not, probably want to have an upload button 
 2) make button group compoenet or to make it so they are highlighted when selected
 */
