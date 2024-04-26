@@ -26,3 +26,8 @@
   white-space: normal;
   text-align: left;
 }
+
+/* maybe change to flexbox */
+#gridDiv {
+  max-width: 400px;
+}
