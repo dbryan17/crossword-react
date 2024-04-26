@@ -50,7 +50,7 @@ export default function GenerateCwsPage() {
           <label className="label">Width:</label>
           <div className="control">
             <input
-              className={widthIsInvalid ? "input isDanger" : "input"}
+              className={widthIsInvalid ? "input is-danger" : "input"}
               type="number"
               min="3"
               onChange={(evt) => handleDimensionInput(true, evt.target.value)}
