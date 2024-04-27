@@ -52,7 +52,7 @@ export default function GenerateCwsPage() {
         title="Generate Crosswords"
         subtitle="Create a grid with the option to include black squares and some words. Then, selected the dicitionaries you would like to use. The algorithm will generate the rest of the crossword, or determine that it is impossible with the given dictionaries. You can choose to fill the grid randomly, or optimized for fastest performance."
       />
-      <div id="gridDiv">
+      <div id="girdPageDiv">
         <h1 className="is-size-4">Create Grid</h1>
         <div className="field">
           <label className="label">Width:</label>

@@ -3,7 +3,8 @@ export default function Grid({ height, width }) {
   /*
   functionality:
     - highlight the cell you are brightly xxxxx
-    - highlight the rest of row or column a duller color
+    - highlight the rest of row or column a duller color xxxxxxx
+    - tab and shift tab to change highlhgited row or col
   */
 
   /* states */
@@ -24,13 +25,31 @@ export default function Grid({ height, width }) {
     idx: null,
     isActive: false,
   });
-
-  console.log(selectedRow);
+  const [isInsertingBlackSqaures, setIsInsertingBlackSquares] = useState(false);
 
   /* fcns */
-  const handleClick = (evt, rowIdx, colIdx) => {
-    // todo calculate selected grid or column, switch to other one if click on the same one
+  /////////////
 
+  // isForward is if it is tab
+  const changeSelectedRowFromKey = (isForward) => {
+    if (isForward) {
+      // go to next one
+      if (selectedRow.isActive) {
+        // on the last row
+        if (selectedRow.idx === height - 1) {
+          // go to first coloumn
+        }
+      }
+    }
+  };
+
+  const handleClick = (evt, rowIdx, colIdx) => {
+    if (isInsertingBlackSqaures) {
+      let newGridValues = [...gridValues];
+      newGridValues[rowIdx][colIdx] = "_";
+      setGridValues(newGridValues);
+      return;
+    }
     // switch to opposite if it is a double click
     if (selectedCell.rowIdx === rowIdx && selectedCell.colIdx === colIdx) {
       if (selectedRow.isActive) {
@@ -54,67 +73,66 @@ export default function Grid({ height, width }) {
 
     setSelectedCell({ rowIdx: rowIdx, colIdx: colIdx });
   };
+  /////////////
 
   const handleKeyDown = (evt, rowIdx, colIdx) => {
     if (evt.ctrlKey || evt.metaKey || evt.altKey) {
       return;
     }
     evt.preventDefault();
+    if (gridValues[rowIdx][colIdx] === "_") {
+      return;
+    }
 
-    const newGridValues = [...gridValues];
+    let newGridValues = [...gridValues];
     const key = evt.key;
 
-    if (/[a-zA-Z]/.test(key)) {
+    // key entering a letter
+    if (/[a-zA-Z]/.test(key) && key.length === 1) {
       newGridValues[rowIdx][colIdx] = key.toUpperCase();
+      // tab - go down to next row or col
+    }
+
+    // now for tabs and arrows
+    switch (key) {
+      case "Tab":
+        // move row or col to next one, if on end of row or col, go to first of the opposite
+
+        // oppposite for shift tab
+        if (evt.shiftKey) {
+        }
     }
 
     setGridValues(newGridValues);
-    // else if()
+  };
 
-    // if (evt.key === "Backspace") {
-    //   // set cell to nothing
-    //   setGridValues(
-    //     gridValues.map((row, rowIdx) =>
-    //       row.map((cell, colIdx) => {
-    //         if (rowIdx === cellRowIdx && colIdx === colRowIdx) {
-    //           if (cell === "") {
-    //             shouldChangeFocus = true;
-    //             // todo - check if you are in an across or a down
-    //             // todo - calculate back based on that
-    //             // todo - need a state to store if you are in across or down
-    //             return cell;
-    //           } else {
-    //             return "";
-    //           }
-    //         } else {
-    //           return cell;
-    //         }
-    //       })
-    //     )
-    //   );
-    //   return;
-    //   // don't fill cell on tab off
-    // } else if (evt.key === "Tab") {
-    //   return;
-    // } else {
-    //   setGridValues(
-    //     gridValues.map((row, rowIdx) =>
-    //       row.map((cell, colIdx) => {
-    //         if (rowIdx === cellRowIdx && colIdx === colRowIdx) {
-    //           return evt.key.toUpperCase();
-    //         } else {
-    //           return cell;
-    //         }
-    //       })
-    //     )
-    //   );
-    // }
-    // if (shouldChangeFocus) {
-    // }
+  const handleBlackSquareBtnClick = () => {
+    setIsInsertingBlackSquares((oldVal) => !oldVal);
+    setSelectedRow({
+      idx: null,
+      isActive: false,
+    });
+    setSelectedCol({
+      idx: null,
+      isActive: false,
+    });
+    setSelectedCell({
+      rowIdx: null,
+      colIdx: null,
+    });
   };
 
   return (
     <div>
+      <br />
+      <button
+        className="button"
+        onClick={() => {
+          handleBlackSquareBtnClick();
+        }}
+      >
+        {isInsertingBlackSqaures ? "Insert letters" : "Insert black squares"}
+      </button>
       <table className="has-background-grey-dark" id="gridTable">
         <tbody>
           {gridValues.map((row, rowIdx) => {
@@ -130,8 +148,10 @@ export default function Grid({ height, width }) {
                       <div
                         id={"cellText" + rowIdx + colIdx}
                         className={
-                          selectedCell.rowIdx === rowIdx &&
-                          selectedCell.colIdx === colIdx
+                          cell === "_"
+                            ? "cellInput has-background-black"
+                            : selectedCell.rowIdx === rowIdx &&
+                              selectedCell.colIdx === colIdx
                             ? "cellInput has-background-info"
                             : (selectedRow.isActive &&
                                 selectedRow.idx === rowIdx) ||
@@ -140,23 +160,14 @@ export default function Grid({ height, width }) {
                             ? "cellInput has-background-link"
                             : "cellInput"
                         }
+                        // this is just here so it registers key downs
                         contentEditable
                         suppressContentEditableWarning={true}
                         onKeyDown={(evt) => handleKeyDown(evt, rowIdx, colIdx)}
                         onClick={(evt) => handleClick(evt, rowIdx, colIdx)}
                       >
-                        {cell}
+                        {cell === "_" ? "" : cell}
                       </div>
-                      {/* <div className="cellTextCont"> */}
-                      {/* <input
-                        type="text"
-                        maxLength="1"
-                        autoComplete="off"
-                        className="cellInput input"
-                        id={"cellInput" + rowIdx + colIdx}
-                        onKeyDown={handleKeyDown}
-                      ></input> */}
-                      {/* </div> */}
                     </td>
                   );
                 })}
