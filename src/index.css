@@ -37,8 +37,11 @@
   height: 60px;
   /* padding: 0; */
   margin: 2px;
-  text-align: center;
+  /* text-align: center; */
   caret-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   /* display: block; */
   /* box-sizing: border-box; */
   outline: none;
