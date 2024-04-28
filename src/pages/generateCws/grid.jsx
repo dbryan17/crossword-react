@@ -1,81 +1,150 @@
 import { useState } from "react";
+import { findNextPrevOpenSpace, findWord } from "./utils/gridSearch";
 export default function Grid({ height, width }) {
   /*
   functionality:
     - highlight the cell you are brightly xxxxx
     - highlight the rest of row or column a duller color xxxxxxx
-    - tab and shift tab to change highlhgited row or col
+    - tab and shift tab to change highlhgited row or col 
+      tab:
+        - if you are in row highlight, it will find the next row "word" that has empty spaces
+          - if there are none, it will go to the first column "word" with empty spaces
+        - same for column
+      shift tab:
+      - same for tab but going backwards
+    
+      
   */
 
   /* states */
+
   const [gridValues, setGridValues] = useState(
     Array.from({ length: width }, (_, i) => i).map((_) =>
-      Array.from({ length: height }, (_, i) => "")
+      Array.from({ length: height }, (_) => "")
     )
   );
   const [selectedCell, setSelectedCell] = useState({
     rowIdx: null,
     colIdx: null,
   });
-  const [selectedRow, setSelectedRow] = useState({
-    idx: null,
-    isActive: false,
+  const [selectedWord, setSelectedWord] = useState({
+    startIdx: null,
+    endIdx: null,
+    otherIdx: null,
+    isRow: true,
   });
-  const [selectedCol, setSelectedCol] = useState({
-    idx: null,
-    isActive: false,
-  });
+
   const [isInsertingBlackSqaures, setIsInsertingBlackSquares] = useState(false);
 
   /* fcns */
   /////////////
 
-  // isForward is if it is tab
-  const changeSelectedRowFromKey = (isForward) => {
-    if (isForward) {
-      // go to next one
-      if (selectedRow.isActive) {
-        // on the last row
-        if (selectedRow.idx === height - 1) {
-          // go to first coloumn
-        }
-      }
-    }
-  };
-
+  /* 
+  function to handle a click on a cell
+  - inserts or uninserts black squares in insert squares mode
+  - does nothing if clicking black sqaure when not in insert sqaures mode
+  - if click on cell not currenttly selected, highlight and adjust word highlight
+  - if click on cell that is currently selected, swap word highlight
+  */
   const handleClick = (evt, rowIdx, colIdx) => {
+    // handle if in insert black sqaure mode
     if (isInsertingBlackSqaures) {
       let newGridValues = [...gridValues];
-      newGridValues[rowIdx][colIdx] = "_";
+      if (newGridValues[rowIdx][colIdx] === "_")
+        newGridValues[rowIdx][colIdx] = "";
+      else newGridValues[rowIdx][colIdx] = "_";
       setGridValues(newGridValues);
       return;
     }
+    // if the clicked cell is a balck sqaure, do nothing
+    if (gridValues[rowIdx][colIdx] === "_") {
+      return;
+    }
     // switch to opposite if it is a double click
-    if (selectedCell.rowIdx === rowIdx && selectedCell.colIdx === colIdx) {
-      if (selectedRow.isActive) {
-        setSelectedRow({ idx: null, isActive: false });
-        setSelectedCol({ idx: colIdx, isActive: true });
-      } else {
-        setSelectedCol({ idx: null, isActive: false });
-        setSelectedRow({ idx: rowIdx, isActive: true });
-      }
-      // if row is currently selected, stick with row
-    } else if (selectedRow.isActive) {
-      // todo - make this (oldState) => oldState.idx = rowIdx to only edit the thing I need to
-      setSelectedRow({ idx: rowIdx, isActive: true });
-      // if col is currently active, stick with it
-    } else if (selectedCol.isActive) {
-      setSelectedCol({ idx: colIdx, isActive: true });
-      // neither are selected, at start, start with row
-    } else {
-      setSelectedRow({ idx: rowIdx, isActive: true });
+
+    let isSameCell =
+      selectedCell.rowIdx === rowIdx && selectedCell.colIdx === colIdx;
+    let newIsRow = isSameCell ? !selectedWord.isRow : selectedWord.isRow;
+
+    let { startIdx, endIdx } = findWord(gridValues, rowIdx, colIdx, newIsRow);
+
+    // dont need this
+    if (!isSameCell) {
+      setSelectedCell({ rowIdx: rowIdx, colIdx: colIdx });
     }
 
-    setSelectedCell({ rowIdx: rowIdx, colIdx: colIdx });
+    setSelectedWord({
+      startIdx: startIdx,
+      endIdx: endIdx,
+      otherIdx: newIsRow ? rowIdx : colIdx,
+      isRow: newIsRow,
+    });
   };
+
   /////////////
 
+  /*
+  called from handle key down to calculate new highlighted word
+  TODO 
+  */
+  const handleWordHighlightChange = (isForward, rowIdx, colIdx) => {
+    // find the current word
+    let { startIdx, endIdx } = findWord(
+      gridValues,
+      rowIdx,
+      colIdx,
+      selectedWord.isRow
+    );
+    let idxFromFindWord = isForward ? endIdx : startIdx;
+    let {
+      rowIdx: newRowIdx,
+      colIdx: newColIdx,
+      isRowHighlight,
+    } = findNextPrevOpenSpace(
+      gridValues,
+      selectedWord.isRow ? rowIdx : idxFromFindWord,
+      selectedWord.isRow ? idxFromFindWord : colIdx,
+      isForward,
+      selectedWord.isRow,
+      false
+    );
+
+    // now to set the new highlight
+    // get the new word
+    let {
+      word,
+      startIdx: newStartIdx,
+      endIdx: newEndIdx,
+    } = findWord(gridValues, newRowIdx, newColIdx, isRowHighlight);
+
+    setSelectedWord({
+      startIdx: newStartIdx,
+      endIdx: newEndIdx,
+      otherIdx: isRowHighlight ? newRowIdx : newColIdx,
+      isRow: isRowHighlight,
+    });
+    // now to set the new cell highlight
+    // want to highlight the first cell in the word that is empty - always has one
+    let firstEmptyIdx = word.indexOf(" ") + newStartIdx;
+    console.log(word);
+    setSelectedCell({
+      rowIdx: isRowHighlight ? newRowIdx : firstEmptyIdx,
+      colIdx: isRowHighlight ? firstEmptyIdx : newColIdx,
+    });
+
+    return;
+  };
+
+  /*
+  handles key presses on cells
+  TODO
+  */
   const handleKeyDown = (evt, rowIdx, colIdx) => {
+    // need to change these because the highlighted cell won't
+    // always be the one that was last clicked
+    // ex. tabbing to change focus
+    rowIdx = selectedCell.rowIdx;
+    colIdx = selectedCell.colIdx;
     if (evt.ctrlKey || evt.metaKey || evt.altKey) {
       return;
     }
@@ -90,36 +159,62 @@ export default function Grid({ height, width }) {
     // key entering a letter
     if (/[a-zA-Z]/.test(key) && key.length === 1) {
       newGridValues[rowIdx][colIdx] = key.toUpperCase();
-      // tab - go down to next row or col
+      // now go to next open space
     }
 
     // now for tabs and arrows
     switch (key) {
       case "Tab":
-        // move row or col to next one, if on end of row or col, go to first of the opposite
-
         // oppposite for shift tab
         if (evt.shiftKey) {
+          handleWordHighlightChange(false, rowIdx, colIdx);
+        } else {
+          // move row or col to next one, if on end of row or col, go to first of the opposite
+          handleWordHighlightChange(true, rowIdx, colIdx);
         }
+        return;
     }
 
     setGridValues(newGridValues);
+    return;
   };
 
   const handleBlackSquareBtnClick = () => {
     setIsInsertingBlackSquares((oldVal) => !oldVal);
-    setSelectedRow({
-      idx: null,
-      isActive: false,
+
+    setSelectedWord({
+      startIdx: null,
+      endIdx: null,
+      otherIdx: null,
+      isRow: true,
     });
-    setSelectedCol({
-      idx: null,
-      isActive: false,
-    });
+
     setSelectedCell({
       rowIdx: null,
       colIdx: null,
     });
+  };
+
+  // checks if a given cell is in the word highlight
+  const checkCellInHighlight = (rowIdx, colIdx) => {
+    // hasn't been set, none are in
+    if (selectedWord.startIdx === null) return false;
+    // row needs to be within start and end idx
+    if (selectedWord.isRow) {
+      // colIdx must be between start and end, other must match rowIdx
+      return (
+        rowIdx === selectedWord.otherIdx &&
+        colIdx >= selectedWord.startIdx &&
+        colIdx <= selectedWord.endIdx
+      );
+    } else {
+      // col word
+      return (
+        colIdx === selectedWord.otherIdx &&
+        rowIdx >= selectedWord.startIdx &&
+        rowIdx <= selectedWord.endIdx
+      );
+    }
   };
 
   return (
@@ -148,16 +243,19 @@ export default function Grid({ height, width }) {
                       <div
                         id={"cellText" + rowIdx + colIdx}
                         className={
+                          // check black sqaure
                           cell === "_"
-                            ? "cellInput has-background-black"
-                            : selectedCell.rowIdx === rowIdx &&
+                            ? // is black sqaure
+                              "cellInput has-background-black"
+                            : // checked if selected
+                            selectedCell.rowIdx === rowIdx &&
                               selectedCell.colIdx === colIdx
-                            ? "cellInput has-background-info"
-                            : (selectedRow.isActive &&
-                                selectedRow.idx === rowIdx) ||
-                              (selectedCol.isActive &&
-                                selectedCol.idx === colIdx)
-                            ? "cellInput has-background-link"
+                            ? // is selected
+                              "cellInput has-background-info"
+                            : // check if in highlighted word
+                            checkCellInHighlight(rowIdx, colIdx)
+                            ? // in highlight
+                              "cellInput has-background-link"
                             : "cellInput"
                         }
                         // this is just here so it registers key downs
