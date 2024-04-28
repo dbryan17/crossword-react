@@ -232,11 +232,13 @@ export default function Grid({ height, width }) {
 
     // key entering a letter or single key
     if (key.length === 1) {
+      console.log(key);
       newGridValues[rowIdx][colIdx] = key.toUpperCase();
+      return;
       // now go to next open space in the current word if there is one, and if not, do nothing
     }
 
-    // now for tabs and arrows
+    // now for tabs/enters and arrows
     switch (key) {
       case "Tab":
         // oppposite for shift tab
@@ -247,6 +249,16 @@ export default function Grid({ height, width }) {
           handleWordHighlightChangeForTabs(true, rowIdx, colIdx);
         }
         return;
+      // ennter same as shift
+      case "Enter":
+        if (evt.shiftKey) {
+          handleWordHighlightChangeForTabs(false, rowIdx, colIdx);
+        } else {
+          // move row or col to next one, if on end of row or col, go to first of the opposite
+          handleWordHighlightChangeForTabs(true, rowIdx, colIdx);
+        }
+        return;
+
       case "ArrowRight":
         handleArrowPress(true, true);
         return;
