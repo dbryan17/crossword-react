@@ -273,12 +273,12 @@ export default function Grid({ height, width }) {
                 ? (i % word.length) + startIdx
                 : colIdx,
             });
-            return;
+            break;
           }
           i = (i + 1) % word.length;
         }
       }
-      return;
+      // return;
       // now go to next open space in the current word if there is one, and if not, do nothing
     } else if (key === "Backspace") {
       // simple case, the cell has a value, simply delete and don't move highlight
@@ -393,7 +393,7 @@ export default function Grid({ height, width }) {
       >
         {isInsertingBlackSqaures ? "Insert letters" : "Insert black squares"}
       </button>
-      <table className="has-background-grey-dark" id="gridTable">
+      <table className="has-background-grey-dark has-text-white" id="gridTable">
         <tbody>
           {gridValues.map((row, rowIdx) => {
             return (
