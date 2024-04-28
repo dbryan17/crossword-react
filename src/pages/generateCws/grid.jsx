@@ -12,10 +12,15 @@ export default function Grid({ height, width }) {
         - same for column
       shift tab:
       - same for tab but going backwards
-    - arrow keys: 
+      - if the grid is full, tab jumps to first non black square start of word
+    - arrow keys: xxxxxxx
       - if it is a direction you are not highlighting (i.e.) up/down with highlighting cols
         - it switches the direction 
       - moves to next non black sqaure space that is in that direction, stops at the end 
+    - typing a letter
+      - enters letter into current space 
+      - goes to next empty space in word forward, if there are no empty spaces forward, goes to first empty space in word
+      - if all spaces in word are full, stays where it is
     
       
   */
@@ -204,16 +209,21 @@ export default function Grid({ height, width }) {
   handles key presses on cells
   */
   const handleKeyDown = (evt, rowIdx, colIdx) => {
+    if (evt.ctrlKey || evt.metaKey || evt.altKey) {
+      return;
+    }
+    evt.preventDefault();
+    //
+    // if (isInsertingBlackSqaures) {
+    //   return;
+    // }
     // need to change these because the highlighted cell won't
     // always be the one that was last clicked
     // ex. tabbing to change focus
     rowIdx = selectedCell.rowIdx;
     colIdx = selectedCell.colIdx;
-    if (evt.ctrlKey || evt.metaKey || evt.altKey) {
-      return;
-    }
-    evt.preventDefault();
-    if (gridValues[rowIdx][colIdx] === "_") {
+    // do nothing if inserting black sqaures
+    if (isInsertingBlackSqaures) {
       return;
     }
 
