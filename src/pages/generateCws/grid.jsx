@@ -17,10 +17,16 @@ export default function Grid({ height, width }) {
       - if it is a direction you are not highlighting (i.e.) up/down with highlighting cols
         - it switches the direction 
       - moves to next non black sqaure space that is in that direction, stops at the end 
-    - typing a letter
+    - typing a letter xxxxxxxx
       - enters letter into current space 
       - goes to next empty space in word forward, if there are no empty spaces forward, goes to first empty space in word
       - if all spaces in word are full, stays where it is
+    - backspaces xxxxxx 
+      - if the current cell has something, delete it, don't move highlight
+      - if the cell has nothing, and it is the start of a word, do nothing
+      - if the cell has nothing, and the previous cell has nothing, shift highlight to previous cell
+      - if the cell has nothing, and the previous cell has something, delete prev cell and shift highlight to it
+
     
       
   */
@@ -232,11 +238,73 @@ export default function Grid({ height, width }) {
 
     // key entering a letter or single key
     if (key.length === 1) {
-      console.log(key);
-      newGridValues[rowIdx][colIdx] = key.toUpperCase();
+      // spaces enter blanks
+      if (key !== " ") {
+        newGridValues[rowIdx][colIdx] = key.toUpperCase();
+      }
+      // now to update cell highlight
+      let { word, startIdx, endIdx } = findWord(
+        newGridValues,
+        rowIdx,
+        colIdx,
+        selectedWord.isRow
+      );
+      // TODO - can prob get rid of some turners by finding next row and new col once maybe not CHECK
+      if (word.includes("")) {
+        // need to find next blank
+        let i = selectedWord.isRow
+          ? (colIdx - startIdx + 1) % word.length
+          : (rowIdx - startIdx + 1) % word.length;
+
+        while (
+          i !== (selectedWord.isRow ? colIdx - startIdx : rowIdx - startIdx)
+        ) {
+          if (
+            newGridValues[selectedWord.isRow ? rowIdx : i + startIdx][
+              selectedWord.isRow ? i + startIdx : colIdx
+            ] === ""
+          ) {
+            // set highlight
+            setSelectedCell({
+              rowIdx: selectedWord.isRow
+                ? rowIdx
+                : (i % word.length) + startIdx,
+              colIdx: selectedWord.isRow
+                ? (i % word.length) + startIdx
+                : colIdx,
+            });
+            return;
+          }
+          i = (i + 1) % word.length;
+        }
+      }
       return;
       // now go to next open space in the current word if there is one, and if not, do nothing
+    } else if (key === "Backspace") {
+      // simple case, the cell has a value, simply delete and don't move highlight
+      if (newGridValues[rowIdx][colIdx] !== "") {
+        newGridValues[rowIdx][colIdx] = "";
+      } else {
+        // first get word
+        let { startIdx } = findWord(
+          newGridValues,
+          rowIdx,
+          colIdx,
+          selectedWord.isRow
+        );
+        // we already know that this cell is blank, so if we are at the start of the word do nothing
+        if (!(selectedWord.isRow ? colIdx === startIdx : rowIdx === startIdx)) {
+          // now we know we are not at the start of the word, so can safely check the previous cell
+          // always set the previous cell to nothing, if it already is it was unnesccary, but saves an if
+          let currRow = selectedWord.isRow ? rowIdx : rowIdx - 1;
+          let currCol = selectedWord.isRow ? colIdx - 1 : colIdx;
+          newGridValues[currRow][currCol] = "";
+          // then shift highlight to it
+          setSelectedCell({ rowIdx: currRow, colIdx: currCol });
+        }
+      }
     }
+    setGridValues(newGridValues);
 
     // now for tabs/enters and arrows
     switch (key) {
@@ -273,7 +341,6 @@ export default function Grid({ height, width }) {
         return;
     }
 
-    setGridValues(newGridValues);
     return;
   };
 
