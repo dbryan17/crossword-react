@@ -69,7 +69,7 @@ export default function Grid({ height, width }) {
       selectedCell.rowIdx === rowIdx && selectedCell.colIdx === colIdx;
     let newIsRow = isSameCell ? !selectedWord.isRow : selectedWord.isRow;
 
-    handleHighlight(rowIdx, colIdx, newIsRow, false);
+    handleHighlight(rowIdx, colIdx, newIsRow);
     return;
   };
 
@@ -84,7 +84,8 @@ export default function Grid({ height, width }) {
     rowIdx,
     colIdx,
     isRowHighlight,
-    shouldHighlightFirstEmpty
+    shouldHighlightFirstEmpty,
+    shouldHighlightFirstLetter
   ) => {
     let { word, startIdx, endIdx } = findWord(
       gridValues,
@@ -97,6 +98,11 @@ export default function Grid({ height, width }) {
       setSelectedCell({
         rowIdx: isRowHighlight ? rowIdx : firstEmptyIdx,
         colIdx: isRowHighlight ? firstEmptyIdx : colIdx,
+      });
+    } else if (shouldHighlightFirstLetter) {
+      setSelectedCell({
+        rowIdx: isRowHighlight ? rowIdx : startIdx,
+        colIdx: isRowHighlight ? startIdx : colIdx,
       });
     } else {
       setSelectedCell({ rowIdx: rowIdx, colIdx: colIdx });
@@ -130,6 +136,7 @@ export default function Grid({ height, width }) {
       rowIdx: newRowIdx,
       colIdx: newColIdx,
       isRowHighlight,
+      fullGrid,
     } = findNextPrevOpenSpace(
       gridValues,
       selectedWord.isRow ? rowIdx : idxFromFindWord,
@@ -138,9 +145,15 @@ export default function Grid({ height, width }) {
       selectedWord.isRow,
       false
     );
-
-    // now to set the new highlight
-    handleHighlight(newRowIdx, newColIdx, isRowHighlight, true);
+    // if the grid is full, cycle through with tab the same but no longer matters about empties, just black sqaures
+    // now to set the new highlight, only highlight first empty if full grid, if full grid, highlight first in letter
+    handleHighlight(
+      newRowIdx,
+      newColIdx,
+      isRowHighlight,
+      fullGrid ? false : true,
+      fullGrid ? true : false
+    );
 
     return;
   };
@@ -155,12 +168,7 @@ export default function Grid({ height, width }) {
     if (selectedWord.isRow !== isHorizontal) {
       // switch direction
       // get word for new direction
-      handleHighlight(
-        selectedCell.rowIdx,
-        selectedCell.colIdx,
-        isHorizontal,
-        false
-      );
+      handleHighlight(selectedCell.rowIdx, selectedCell.colIdx, isHorizontal);
       return;
     }
 
@@ -171,7 +179,7 @@ export default function Grid({ height, width }) {
       let i = selectedCell.colIdx + (isForward ? +1 : -1);
       while (isForward ? i < gridValues[0].length : i > -1) {
         if (gridValues[rowIdx][i] !== "_") {
-          handleHighlight(rowIdx, i, true, false);
+          handleHighlight(rowIdx, i, true);
           return;
         }
         isForward ? i++ : i--;
@@ -182,7 +190,7 @@ export default function Grid({ height, width }) {
       let i = selectedCell.rowIdx + (isForward ? +1 : -1);
       while (isForward ? i < gridValues.length : i > -1) {
         if (gridValues[i][colIdx] !== "_") {
-          handleHighlight(i, colIdx, false, false);
+          handleHighlight(i, colIdx, false);
           return;
         }
         isForward ? i++ : i--;
@@ -212,10 +220,10 @@ export default function Grid({ height, width }) {
     let newGridValues = [...gridValues];
     const key = evt.key;
 
-    // key entering a letter
-    if (/[a-zA-Z]/.test(key) && key.length === 1) {
+    // key entering a letter or single key
+    if (key.length === 1) {
       newGridValues[rowIdx][colIdx] = key.toUpperCase();
-      // now go to next open space
+      // now go to next open space in the current word if there is one, and if not, do nothing
     }
 
     // now for tabs and arrows

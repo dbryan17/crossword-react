@@ -1,3 +1,5 @@
+// this finds the next open space based on a position and if it is in row/col highlight
+// CAVEAT: if the grid is full, it will just find the next space that isn't a black sqaure
 const findNextPrevOpenSpace = (
   grid,
   rowIdx,
@@ -6,8 +8,13 @@ const findNextPrevOpenSpace = (
   isRowHighlight,
   hasBacktracked
 ) => {
-  // we are on row highlight
+  // first, check if grid is full\
+  let fullGrid = false;
+  if (gridIsFull(grid)) {
+    fullGrid = true;
+  }
   if (isRowHighlight) {
+    // we are on row highlight
     // find next space
     if (isNext) {
       // first, get the next space which is colIdx + 1 unles end of row
@@ -16,8 +23,16 @@ const findNextPrevOpenSpace = (
       let currRow = colIdx + 1 >= grid[0].length ? rowIdx + 1 : rowIdx;
       while (currRow < grid.length) {
         while (currCol < grid[0].length) {
-          if (grid[currRow][currCol] === "") {
-            return { rowIdx: currRow, colIdx: currCol, isRowHighlight: true };
+          if (
+            grid[currRow][currCol] === "" ||
+            (grid[currRow][currCol] !== "_" && fullGrid)
+          ) {
+            return {
+              rowIdx: currRow,
+              colIdx: currCol,
+              isRowHighlight: true,
+              fullGrid: fullGrid,
+            };
           }
           currCol++;
         }
@@ -38,8 +53,16 @@ const findNextPrevOpenSpace = (
       let currRow = colIdx === 0 ? rowIdx - 1 : rowIdx;
       while (currRow > -1) {
         while (currCol > -1) {
-          if (grid[currRow][currCol] === "") {
-            return { rowIdx: currRow, colIdx: currCol, isRowHighlight: true };
+          if (
+            grid[currRow][currCol] === "" ||
+            (grid[currRow][currCol] !== "_" && fullGrid)
+          ) {
+            return {
+              rowIdx: currRow,
+              colIdx: currCol,
+              isRowHighlight: true,
+              fullGrid: fullGrid,
+            };
           }
           currCol--;
         }
@@ -69,11 +92,15 @@ const findNextPrevOpenSpace = (
       let currCol = rowIdx + 1 >= grid.length ? colIdx + 1 : colIdx;
       while (currCol < grid[0].length) {
         while (currRow < grid.length) {
-          if (grid[currRow][currCol] === "") {
+          if (
+            grid[currRow][currCol] === "" ||
+            (grid[currRow][currCol] !== "_" && fullGrid)
+          ) {
             return {
               rowIdx: currRow,
               colIdx: currCol,
               isRowHighlight: false,
+              fullGrid: fullGrid,
             };
           }
           currRow++;
@@ -95,11 +122,15 @@ const findNextPrevOpenSpace = (
       let currCol = rowIdx - 1 === 0 ? colIdx - 1 : colIdx;
       while (currCol > -1) {
         while (currRow > -1) {
-          if (grid[currRow][currCol] === "") {
+          if (
+            grid[currRow][currCol] === "" ||
+            (grid[currRow][currCol] !== "_" && fullGrid)
+          ) {
             return {
               rowIdx: currRow,
               colIdx: currCol,
               isRowHighlight: false,
+              fullGrid: fullGrid,
             };
           }
           currRow--;
@@ -164,6 +195,22 @@ const findWord = (grid, rowIdx, colIdx, isRowWord) => {
   let endIdx = i - 1;
 
   return { word: currWord, startIdx: startIdx, endIdx: endIdx };
+};
+
+const gridIsFull = (grid) => {
+  let isFull = true;
+  grid.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell === "") {
+        isFull = false;
+        return;
+      }
+    });
+    if (isFull) {
+      return;
+    }
+  });
+  return isFull;
 };
 
 export { findNextPrevOpenSpace, findWord };
