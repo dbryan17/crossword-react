@@ -47,6 +47,10 @@
   outline: none;
   border: none; /* Removing any border to check the exact fitting */
   /* background-color: transparent;  */
+
+  /* no user select text attempt */
+  cursor: default;
+  user-select: none;
 }
 
 .cellTd {

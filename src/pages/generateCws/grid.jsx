@@ -393,7 +393,10 @@ export default function Grid({ height, width }) {
       >
         {isInsertingBlackSqaures ? "Insert letters" : "Insert black squares"}
       </button>
-      <table className="has-background-grey-dark has-text-white" id="gridTable">
+      <table
+        className="has-background-grey-dark has-text-white is-size-3"
+        id="gridTable"
+      >
         <tbody>
           {gridValues.map((row, rowIdx) => {
             return (
@@ -424,8 +427,7 @@ export default function Grid({ height, width }) {
                             : "cellInput"
                         }
                         // this is just here so it registers key downs
-                        contentEditable
-                        suppressContentEditableWarning={true}
+                        tabIndex={0}
                         onKeyDown={(evt) => handleKeyDown(evt, rowIdx, colIdx)}
                         onClick={(evt) => handleClick(evt, rowIdx, colIdx)}
                       >
