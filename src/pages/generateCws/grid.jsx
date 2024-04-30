@@ -233,7 +233,7 @@ export default function Grid({ height, width }) {
       return;
     }
 
-    let newGridValues = [...gridValues];
+    let newGridValues = JSON.parse(JSON.stringify(gridValues));
     const key = evt.key;
 
     // key entering a letter or single key
@@ -249,38 +249,52 @@ export default function Grid({ height, width }) {
         colIdx,
         selectedWord.isRow
       );
-      // TODO - can prob get rid of some turners by finding next row and new col once maybe not CHECK
-      if (word.includes("")) {
-        // need to find next blank
-        let i = selectedWord.isRow
-          ? (colIdx - startIdx + 1) % word.length
-          : (rowIdx - startIdx + 1) % word.length;
 
-        while (
-          i !== (selectedWord.isRow ? colIdx - startIdx : rowIdx - startIdx)
-        ) {
-          if (
-            newGridValues[selectedWord.isRow ? rowIdx : i + startIdx][
-              selectedWord.isRow ? i + startIdx : colIdx
-            ] === ""
-          ) {
-            // set highlight
-            setSelectedCell({
-              rowIdx: selectedWord.isRow
-                ? rowIdx
-                : (i % word.length) + startIdx,
-              colIdx: selectedWord.isRow
-                ? (i % word.length) + startIdx
-                : colIdx,
-            });
-            break;
-          }
-          i = (i + 1) % word.length;
-        }
+      // if it is a full BEFORE this letter is enetered, it should go to next cell:
+      let { word: oldWord } = findWord(
+        gridValues,
+        rowIdx,
+        colIdx,
+        selectedWord.isRow
+      );
+
+      if (
+        oldWord.length === oldWord.replaceAll(" ", "").length &&
+        endIdx !== (selectedWord.isRow ? colIdx : rowIdx)
+      ) {
+        setSelectedCell({
+          rowIdx: selectedWord.isRow ? rowIdx : rowIdx + 1,
+          colIdx: selectedWord.isRow ? colIdx + 1 : colIdx,
+        });
       }
+
+      // need to find next blank
+      let i = selectedWord.isRow
+        ? (colIdx - startIdx + 1) % word.length
+        : (rowIdx - startIdx + 1) % word.length;
+
+      while (
+        i !== (selectedWord.isRow ? colIdx - startIdx : rowIdx - startIdx)
+      ) {
+        if (
+          newGridValues[selectedWord.isRow ? rowIdx : i + startIdx][
+            selectedWord.isRow ? i + startIdx : colIdx
+          ] === ""
+        ) {
+          // set highlight
+          setSelectedCell({
+            rowIdx: selectedWord.isRow ? rowIdx : (i % word.length) + startIdx,
+            colIdx: selectedWord.isRow ? (i % word.length) + startIdx : colIdx,
+          });
+          break;
+        }
+        i = (i + 1) % word.length;
+      }
+
       // return;
       // now go to next open space in the current word if there is one, and if not, do nothing
-    } else if (key === "Backspace") {
+    }
+    if (key === "Backspace") {
       // simple case, the cell has a value, simply delete and don't move highlight
       if (newGridValues[rowIdx][colIdx] !== "") {
         newGridValues[rowIdx][colIdx] = "";
@@ -304,6 +318,7 @@ export default function Grid({ height, width }) {
         }
       }
     }
+
     setGridValues(newGridValues);
 
     // now for tabs/enters and arrows
@@ -340,7 +355,7 @@ export default function Grid({ height, width }) {
         handleArrowPress(false, false);
         return;
     }
-
+    console.log("returning");
     return;
   };
 
