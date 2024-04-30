@@ -1,16 +1,15 @@
 import Header from "../../components/header/header";
 import { useState } from "react";
 import Grid from "./grid";
+import GenerateCwButton from "./generation";
 export default function GenerateCwsPage() {
-  const [generateVars, setGenerateVars] = useState({
-    shouldGenerate: false,
-    width: null,
-    height: null,
-  });
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
   const [widthIsInvalid, setWidthIsInvalid] = useState(false);
   const [heightIsInvalid, setHeightIsInvalid] = useState(false);
+
+  // state for a grid values to be passed down
+  const [gridValues, setGridValues] = useState([]);
 
   /* fcns */
   const handleGenerateClick = () => {
@@ -24,13 +23,15 @@ export default function GenerateCwsPage() {
       isError = true;
     }
     if (!isError) {
-      setGenerateVars({
-        shouldGenerate: true,
-        width: width,
-        height: height,
-      });
+      setGridValues(
+        Array.from({ length: width }, (_, i) => i).map((_) =>
+          Array.from({ length: height }, (_) => "")
+        )
+      );
     }
   };
+
+  console.log(gridValues);
 
   const handleDimensionInput = (isWidth, number) => {
     if (isWidth) {
@@ -92,8 +93,8 @@ export default function GenerateCwsPage() {
         >
           Generate
         </button>
-        {generateVars.shouldGenerate ? (
-          <Grid width={generateVars.width} height={generateVars.height} />
+        {gridValues.length > 0 ? (
+          <Grid gridValues={gridValues} setGridValues={setGridValues} />
         ) : (
           ""
         )}
@@ -101,6 +102,12 @@ export default function GenerateCwsPage() {
       <br />
       <div>
         <h1 className="is-size-4">Select Dictionary</h1>
+      </div>
+      <div>
+        <GenerateCwButton
+          gridValues={gridValues}
+          setGridValues={setGridValues}
+        />
       </div>
     </div>
   );

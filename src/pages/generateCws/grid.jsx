@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { findNextPrevOpenSpace, findWord } from "./utils/gridSearch";
-export default function Grid({ height, width }) {
+import { memo } from "react";
+export default memo(function Grid({ gridValues, setGridValues }) {
   /*
   functionality:
     - highlight the cell you are brightly xxxxx
@@ -33,11 +34,6 @@ export default function Grid({ height, width }) {
 
   /* states */
 
-  const [gridValues, setGridValues] = useState(
-    Array.from({ length: width }, (_, i) => i).map((_) =>
-      Array.from({ length: height }, (_) => "")
-    )
-  );
   const [selectedCell, setSelectedCell] = useState({
     rowIdx: null,
     colIdx: null,
@@ -355,7 +351,6 @@ export default function Grid({ height, width }) {
         handleArrowPress(false, false);
         return;
     }
-    console.log("returning");
     return;
   };
 
@@ -458,4 +453,4 @@ export default function Grid({ height, width }) {
       </table>
     </div>
   );
-}
+});

@@ -1,10 +1,10 @@
 import { create } from "zustand";
 
 const useUserEnteredDictsStore = create((set) => ({
-  dictionaries: [],
+  dicts: [],
   addDict: (dict) =>
     set((state) => ({
-      dictionaries: [...state.dictionaries, dict],
+      dicts: [...state.dicts, dict],
     })),
 }));
 
